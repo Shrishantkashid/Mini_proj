@@ -4,7 +4,10 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "dev": "concurrently \"npm:server\" \"npm:client\"",
+    "server": "npm --prefix backend run dev",
+    "client": "npm --prefix frontend run dev"
   },
   "keywords": [],
   "author": "",
