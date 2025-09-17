@@ -1,6 +1,7 @@
 const express = require('express');
 const cors = require('cors');
 const helmet = require('helmet');
+const path = require('path');
 require('dotenv').config();
 
 const authRoutes = require('./routes/auth');
@@ -19,12 +20,12 @@ app.use('/api/auth', authRoutes);
 
 // Health check endpoint
 app.get('/api/health', (req, res) => {
-  res.json({ message: 'Skill Swap Platform API is running!' });
+  res.json({ message: 'BlockLearn API is running!' });
 });
 
-// ✅ Default root route
+// Default root route
 app.get('/', (req, res) => {
-  res.send('Skill Swap Platform Backend is running!');
+  res.send('BlockLearn Backend is running!');
 });
 
 // Error handling middleware
