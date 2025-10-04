@@ -106,7 +106,7 @@ const Index = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-gray-50 dark:bg-slate-950">
       {/* Animated Background */}
       <AnimatedBackground 
         type="blobs" 
@@ -282,7 +282,7 @@ const Index = () => {
           <div className="flex flex-col md:flex-row justify-between items-center gap-6">
             <div className="flex items-center gap-2 cursor-pointer" onClick={() => navigate('/')}>
               <Sparkles className="w-6 h-6 text-primary" />
-              <span className="text-xl font-bold bg-gradient-primary bg-clip-text text-transparent">SkillSwap</span>
+              <span className="text-xl font-bold bg-gradient-primary bg-clip-text text-transparent">BlockLearn</span>
             </div>
             <div className="flex gap-6 text-sm">
               <button onClick={handleGetStarted} className="text-muted-foreground hover:text-primary transition-colors">Sign Up</button>
@@ -291,7 +291,7 @@ const Index = () => {
               <button onClick={scrollToHowItWorks} className="text-muted-foreground hover:text-primary transition-colors">How It Works</button>
             </div>
             <p className="text-sm text-muted-foreground">
-              © 2025 SkillSwap. Empowering students worldwide.
+              © 2025 BlockLearn. Empowering students worldwide.
             </p>
           </div>
         </div>

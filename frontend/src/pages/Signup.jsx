@@ -103,7 +103,7 @@ function Signup() {
   };
 
   return (
-    <div className="relative min-h-screen w-full bg-background text-foreground overflow-hidden">
+    <div className="relative min-h-screen w-full bg-gray-50 dark:bg-slate-950 text-foreground overflow-hidden">
       {/* Animated Background */}
       <AnimatedBackground 
         type="blobs" 
@@ -119,18 +119,18 @@ function Signup() {
             <Link to="/" className="inline-flex items-center gap-2 mb-6 hover:opacity-80 transition-opacity">
               <Sparkles className="w-10 h-10 text-primary" />
               <span className="text-3xl font-bold bg-gradient-primary bg-clip-text text-transparent">
-                SkillSwap
+                BlockLearn
               </span>
             </Link>
             <h2 className="text-3xl font-bold text-foreground mb-2">Create Your Account</h2>
             <p className="text-muted-foreground">
-              Join the SkillSwap community today
+              Join the BlockLearn community today
             </p>
           </div>
 
           {/* Form Card */}
           <div 
-            className="backdrop-blur-md bg-card/50 border border-border/50 rounded-2xl p-8 shadow-2xl relative overflow-hidden"
+            className="backdrop-blur-md bg-white/50 dark:bg-slate-900/50 border border-border/50 rounded-2xl p-8 shadow-2xl relative overflow-hidden"
             onMouseMove={handleMouseMove}
             onMouseEnter={() => setIsHovering(true)}
             onMouseLeave={() => setIsHovering(false)}
