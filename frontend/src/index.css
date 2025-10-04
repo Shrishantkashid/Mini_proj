@@ -1,102 +1,182 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
+/* Definition of the design system. All colors, gradients, fonts, etc should be defined here. 
+All colors MUST be HSL.
+*/
+
 @layer base {
-  * {
-  }
-  
-  body {
-    @apply min-h-screen font-sans text-slate-800 dark:text-slate-100;
+  :root {
+    --background: 220 25% 10%;
+    --foreground: 220 10% 98%;
+
+    --card: 220 20% 14%;
+    --card-foreground: 220 10% 98%;
+
+    --popover: 220 20% 14%;
+    --popover-foreground: 220 10% 98%;
+
+    --primary: 260 85% 65%;
+    --primary-foreground: 220 10% 98%;
+
+    --secondary: 195 100% 50%;
+    --secondary-foreground: 220 25% 10%;
+
+    --muted: 220 15% 25%;
+    --muted-foreground: 220 10% 65%;
+
+    --accent: 330 85% 60%;
+    --accent-foreground: 220 10% 98%;
+
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 220 10% 98%;
+
+    --border: 220 15% 20%;
+    --input: 220 15% 20%;
+    --ring: 260 85% 65%;
+
+    --radius: 1rem;
+
+    /* Gradients */
+    --gradient-primary: linear-gradient(135deg, hsl(260 85% 65%) 0%, hsl(195 100% 50%) 100%);
+    --gradient-secondary: linear-gradient(135deg, hsl(330 85% 60%) 0%, hsl(25 95% 60%) 100%);
+    --gradient-hero: linear-gradient(135deg, hsl(260 85% 65%) 0%, hsl(195 100% 50%) 50%, hsl(330 85% 60%) 100%);
+    
+    /* Shadows & Effects */
+    --shadow-glow: 0 0 40px hsl(260 85% 65% / 0.3);
+    --shadow-card: 0 8px 32px hsl(220 25% 5% / 0.4);
+    
+    /* Transitions */
+    --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   }
 
-  .app-bg {
-    background-image: linear-gradient(135deg, #ecfdf5, #ffffff, #f7fee7);
+  @keyframes gradient-shift {
+    0%, 100% {
+      background-position: 0% 50%;
+    }
+    50% {
+      background-position: 100% 50%;
+    }
   }
-  
-  html {
-    scroll-behavior: smooth;
+
+  @keyframes fade-in {
+    from {
+      opacity: 0;
+      transform: translateY(20px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  @keyframes slide-up {
+    from {
+      opacity: 0;
+      transform: translateY(30px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  @keyframes float {
+    0%, 100% {
+      transform: translateY(0);
+    }
+    50% {
+      transform: translateY(-10px);
+    }
+  }
+
+  @keyframes glow {
+    0%, 100% {
+      box-shadow: 0 0 20px hsl(260 85% 65% / 0.3);
+    }
+    50% {
+      box-shadow: 0 0 30px hsl(260 85% 65% / 0.5);
+    }
+  }
+
+  .bg-animated-gradient {
+    background: linear-gradient(
+      135deg,
+      hsl(260 85% 65%),
+      hsl(195 100% 50%),
+      hsl(330 85% 60%),
+      hsl(260 85% 65%)
+    );
+    background-size: 400% 400%;
+    animation: gradient-shift 15s ease infinite;
+  }
+
+  .animate-fade-in {
+    animation: fade-in 0.8s ease-out;
+  }
+
+  .animate-slide-up {
+    animation: slide-up 0.6s ease-out;
+  }
+
+  .animate-float {
+    animation: float 3s ease-in-out infinite;
+  }
+
+  .animate-glow {
+    animation: glow 2s ease-in-out infinite;
+  }
+
+  .bg-gradient-primary {
+    background: var(--gradient-primary);
+  }
+
+  .bg-gradient-secondary {
+    background: var(--gradient-secondary);
+  }
+
+  .bg-gradient-hero {
+    background: var(--gradient-hero);
+  }
+
+  .dark {
+    --background: 220 25% 10%;
+    --foreground: 220 10% 98%;
+
+    --card: 220 20% 14%;
+    --card-foreground: 220 10% 98%;
+
+    --popover: 220 20% 14%;
+    --popover-foreground: 220 10% 98%;
+
+    --primary: 260 85% 65%;
+    --primary-foreground: 220 10% 98%;
+
+    --secondary: 195 100% 50%;
+    --secondary-foreground: 220 25% 10%;
+
+    --muted: 220 15% 25%;
+    --muted-foreground: 220 10% 65%;
+
+    --accent: 330 85% 60%;
+    --accent-foreground: 220 10% 98%;
+
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 220 10% 98%;
+
+    --border: 220 15% 20%;
+    --input: 220 15% 20%;
+    --ring: 260 85% 65%;
   }
 }
 
-@layer components {
-  .btn-primary {
-    @apply bg-green-600 hover:bg-green-700 text-white font-medium py-3 px-6 rounded-lg transition-all duration-200 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 disabled:opacity-60 disabled:pointer-events-none;
-  }
-  
-  /* Colorful button variants */
-  .btn-blue { @apply bg-blue-600 hover:bg-blue-700 text-white font-medium py-3 px-6 rounded-lg shadow-md hover:shadow-lg transition transform hover:-translate-y-0.5; }
-  .btn-amber { @apply bg-amber-500 hover:bg-amber-600 text-white font-medium py-3 px-6 rounded-lg shadow-md hover:shadow-lg transition transform hover:-translate-y-0.5; }
-  .btn-purple { @apply bg-purple-600 hover:bg-purple-700 text-white font-medium py-3 px-6 rounded-lg shadow-md hover:shadow-lg transition transform hover:-translate-y-0.5; }
-  .btn-pink { @apply bg-pink-600 hover:bg-pink-700 text-white font-medium py-3 px-6 rounded-lg shadow-md hover:shadow-lg transition transform hover:-translate-y-0.5; }
-  .btn-cyan { @apply bg-cyan-600 hover:bg-cyan-700 text-white font-medium py-3 px-6 rounded-lg shadow-md hover:shadow-lg transition transform hover:-translate-y-0.5; }
-  
-  .btn-secondary {
-    @apply bg-white hover:bg-gray-50 text-gray-700 font-medium py-3 px-6 rounded-lg border border-gray-300 transition-all duration-200 shadow-md hover:shadow-lg dark:bg-slate-800 dark:text-slate-100 dark:border-slate-700;
-  }
-  
-  .input-field {
-    @apply w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all duration-200 bg-white shadow-sm dark:bg-slate-900 dark:border-slate-700;
-  }
-  
-  .card {
-    @apply bg-white rounded-xl shadow-lg border border-gray-100 p-6 transition-all duration-200 hover:shadow-xl dark:bg-slate-900 dark:border-slate-800;
-  }
-  
-  .gradient-text {
-    @apply bg-gradient-to-r from-green-600 to-emerald-600 bg-clip-text text-transparent;
+@layer base {
+  * {
+    border-color: hsl(var(--border));
   }
 
-  .badge {
-    @apply inline-flex items-center rounded-full px-3 py-1 text-xs font-medium bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-200;
+  body {
+    @apply bg-background text-foreground;
   }
-
-  .chip {
-    @apply inline-flex items-center gap-1 rounded-lg px-2.5 py-1 text-xs bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-200;
-  }
-
-  .glass {
-    @apply bg-white/70 dark:bg-slate-900/60 backdrop-blur-xl border border-white/40 dark:border-slate-700 shadow-lg rounded-2xl;
-  }
-
-  .link {
-    @apply text-primary-600 hover:text-primary-700 underline-offset-4 hover:underline font-medium;
-  }
-
-  .section {
-    @apply max-w-7xl mx-auto px-4 sm:px-6 lg:px-8;
-  }
-
-  /* Alerts */
-  .alert {
-    @apply rounded-lg p-4 border text-sm flex items-start gap-2;
-  }
-  .alert-success { @apply alert bg-green-50 text-green-800 border-green-200; }
-  .alert-error { @apply alert bg-red-50 text-red-800 border-red-200; }
-  .alert-info { @apply alert bg-blue-50 text-blue-800 border-blue-200; }
-
-  /* Skeleton loaders */
-  .skeleton { @apply animate-pulse bg-slate-200 dark:bg-slate-700 rounded; }
-  .skeleton-text { @apply skeleton h-4 w-32; }
-  .skeleton-avatar { @apply skeleton rounded-full h-10 w-10; }
-  .skeleton-card { @apply skeleton h-40 w-full; }
-
-  /* Tooltip */
-  .tooltip {
-    @apply relative inline-block;
-  }
-  .tooltip:hover .tooltip-content { @apply opacity-100 translate-y-0; }
-  .tooltip-content {
-    @apply pointer-events-none absolute left-1/2 -translate-x-1/2 translate-y-1 opacity-0 transition
-           bg-slate-900 text-white text-xs px-2 py-1 rounded shadow-lg whitespace-nowrap z-50;
-  }
-
-  /* Table */
-  .table { @apply w-full border border-slate-200 rounded-lg overflow-hidden; }
-  .table thead th {
-    @apply bg-slate-50 text-slate-700 text-left text-xs font-semibold uppercase tracking-wide px-4 py-2;
-  }
-  .table tbody td { @apply px-4 py-3 text-sm text-slate-700 border-t border-slate-100; }
-  .table tbody tr:hover { @apply bg-slate-50/60; }
 }

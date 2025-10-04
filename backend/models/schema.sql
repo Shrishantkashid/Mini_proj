@@ -1,11 +1,9 @@
--- Create database tables
-CREATE DATABASE skill_swap_db;
+-- Create database
+-- Note: Run this command separately before running the rest of the schema
+-- CREATE DATABASE skill_swap_db;
 
--- Users table
-CREATE TABLE users (
-    id SERIAL PRIMARY KEY,
-    email VARCHAR(255) UNIQUE NOT NULL,
-    password_hash VARCHAR(255),
+-- Connect to the database before running the rest of this script
+-- \c skill_swap_db
     first_name VARCHAR(100),
     last_name VARCHAR(100),
     campus_verified BOOLEAN DEFAULT FALSE,

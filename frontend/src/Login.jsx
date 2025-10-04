@@ -1,111 +1,183 @@
 import React, { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
+import { sendOTP, verifyOTP } from './api';
 import axios from "axios";
+import { GoogleLogin } from '@react-oauth/google';
+import { AnimatedBackground } from "@/components/AnimatedBackground";
+import { Sparkles, ArrowLeft, Mail, CheckCircle, AlertCircle } from "lucide-react";
 
-const Login = () => {
-  const [step, setStep] = useState("enterEmail"); // enterEmail → otp
+export default function Login() {
+  const [step, setStep] = useState("enterEmail"); // enterEmail -> enterOtp
   const [email, setEmail] = useState("");
   const [otp, setOtp] = useState("");
   const [message, setMessage] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
 
+  const normalizeEmail = (value) => {
+    const trimmed = (value || "").trim().toLowerCase();
+    if (!trimmed) return "";
+    // TEMPORARILY DISABLED: Accept any email without auto-appending domain
+    return trimmed;
+    // ORIGINAL: return trimmed.includes("@") ? trimmed : `${trimmed}@saividya.ac.in`;
+  };
+
   const sendOtp = async () => {
-    if (!email) {
-      setMessage("Please enter your email address");
-      return;
-    }
-    
+    const targetEmail = normalizeEmail(email);
+    if (!targetEmail) { setMessage("Please enter your email"); return; }
     setIsLoading(true);
     setMessage("");
-    
     try {
-      await axios.post("/api/auth/send-otp", {
-        email,
-        isNewUser: false,
-      });
-      setStep("otp");
-      setMessage("OTP sent to your email! Check your inbox.");
+      await sendOTP(targetEmail, false);
+      setStep("enterOtp");
+      setEmail(targetEmail);
+      setMessage(`OTP sent to ${targetEmail}. Please check your inbox.`);
     } catch (error) {
-      setMessage(error.response?.data?.message || error.response?.data?.error || error.message || "Error sending OTP");
+      setMessage(error.response?.data?.message || error.response?.data?.error || "Failed to send OTP. Ensure backend and SMTP are configured.");
     } finally {
       setIsLoading(false);
     }
   };
 
   const verifyOtp = async () => {
-    if (!otp) {
-      setMessage("Please enter the OTP");
-      return;
-    }
-    
+    if (!otp) { setMessage("Please enter the OTP"); return; }
     setIsLoading(true);
     setMessage("");
-    
     try {
-      const res = await axios.post("/api/auth/verify-otp", {
-        email,
-        otp,
-        isNewUser: false,
-      });
-      localStorage.setItem("token", res.data.token);
-      setMessage("✅ Login successful! Redirecting...");
-      setTimeout(() => navigate("/dashboard"), 1500);
+      const res = await verifyOTP(normalizeEmail(email), otp, null, null, false);
+      localStorage.setItem("token", res.token);
+      localStorage.setItem("userData", JSON.stringify(res.user));
+      navigate("/dashboard");
     } catch (error) {
-      setMessage(error.response?.data?.message || error.response?.data?.error || error.message || "Error verifying OTP");
+      setMessage(error.response?.data?.message || error.response?.data?.error || "Invalid OTP or server unavailable.");
     } finally {
       setIsLoading(false);
     }
   };
 
-  const goBack = () => {
-    setStep("enterEmail");
+  const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
+  const [isHovering, setIsHovering] = useState(false);
+
+  const handleMouseMove = (e) => {
+    const rect = e.currentTarget.getBoundingClientRect();
+    setMousePosition({
+      x: e.clientX - rect.left,
+      y: e.clientY - rect.top
+    });
+  };
+
+  // Google OAuth login handler
+  const handleGoogleSuccess = async (credentialResponse) => {
+    setIsLoading(true);
     setMessage("");
-    setOtp("");
+    try {
+      const res = await axios.post(`${process.env.REACT_APP_API_URL || 'http://localhost:5000/api'}/auth/google`, { 
+        credential: credentialResponse.credential 
+      });
+      localStorage.setItem("token", res.data.token);
+      localStorage.setItem("userData", JSON.stringify(res.data.user));
+      navigate("/dashboard");
+    } catch (error) {
+      setMessage(error.response?.data?.message || "Google login failed. Please try again.");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleGoogleError = () => {
+    setMessage("Google login failed. Please try again.");
   };
 
   return (
-    <div className="min-h-screen app-bg flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-md w-full space-y-8">
-        {/* Header */}
-        <div className="text-center">
-          <Link to="/" className="text-3xl font-bold gradient-text mb-2 block">
-            SkillSwap
-          </Link>
-          <h2 className="text-2xl font-bold text-gray-900">
-            {step === "enterEmail" ? "Welcome Back" : "Verify Your Email"}
-          </h2>
-          <p className="text-gray-600 mt-2">
-            {step === "enterEmail" 
-              ? "Enter your campus email to continue" 
-              : "We've sent a verification code to your email"
-            }
-          </p>
-        </div>
+    <div className="relative min-h-screen w-full bg-background text-foreground overflow-hidden">
+      {/* Animated Background */}
+      <AnimatedBackground 
+        type="blobs" 
+        intensity={0.6}
+        disableOnMobile={true}
+      />
 
-        {/* Form */}
-        <div className="card">
+      {/* Content */}
+      <div className="relative z-10 min-h-screen flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
+        <div className="max-w-md w-full space-y-8">
+          {/* Header */}
+          <div className="text-center">
+            <Link to="/" className="inline-flex items-center gap-2 mb-6 hover:opacity-80 transition-opacity">
+              <Sparkles className="w-10 h-10 text-primary" />
+              <span className="text-3xl font-bold bg-gradient-primary bg-clip-text text-transparent">
+                SkillSwap
+              </span>
+            </Link>
+            <h2 className="text-3xl font-bold text-foreground mb-2">Welcome Back</h2>
+            <p className="text-muted-foreground">
+              {step === "enterEmail" ? "Sign in to continue learning" : "Enter the code sent to your email"}
+            </p>
+          </div>
+
+          {/* Form Card */}
+          <div 
+            className="backdrop-blur-md bg-card/50 border border-border/50 rounded-2xl p-8 shadow-2xl relative overflow-hidden"
+            onMouseMove={handleMouseMove}
+            onMouseEnter={() => setIsHovering(true)}
+            onMouseLeave={() => setIsHovering(false)}
+          >
+            {/* Gradient Blob Effect */}
+            <div
+              className={`absolute pointer-events-none w-[400px] h-[400px] bg-gradient-hero opacity-20 rounded-full blur-3xl transition-opacity duration-200 ${
+                isHovering ? 'opacity-100' : 'opacity-0'
+              }`}
+              style={{
+                transform: `translate(${mousePosition.x - 200}px, ${mousePosition.y - 200}px)`,
+                transition: 'transform 0.1s ease-out'
+              }}
+            />
+
+            <div className="relative z-10">
+              {/* Google Sign In */}
+              <GoogleLogin
+                onSuccess={handleGoogleSuccess}
+                onError={handleGoogleError}
+                useOneTap={false}
+                theme="outline"
+                size="large"
+                text="signin_with"
+                shape="rectangular"
+                width="100%"
+                className="w-full"
+              />
+
+              {/* Divider */}
+              <div className="flex items-center gap-4 my-6">
+                <div className="flex-1 h-px bg-border"></div>
+                <span className="text-xs text-muted-foreground">or use your email</span>
+                <div className="flex-1 h-px bg-border"></div>
+              </div>
+
+              <h3 className="text-lg font-semibold text-foreground mb-4">
+                {step === "enterEmail" ? "Login with OTP" : "Verify OTP"}
+              </h3>
           {step === "enterEmail" ? (
-            <div className="space-y-6">
+            <div className="space-y-4">
               <div>
-                <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
-                  Campus Email Address
+                <label className="block text-sm text-foreground mb-2">
+                  <Mail className="w-4 h-4 inline mr-1" />
+                  Email Address
                 </label>
                 <input
-                  id="email"
                   type="email"
-                  placeholder="your.email@campus.edu"
+                  className="w-full px-4 py-3 bg-card/50 border border-border rounded-xl text-foreground placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent backdrop-blur-sm"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="input-field"
+                  placeholder="your.email@example.com"
                   onKeyPress={(e) => e.key === 'Enter' && sendOtp()}
+                  required
                 />
+                <p className="text-xs text-muted-foreground mt-1">Enter your full email address</p>
               </div>
-              
-              <button
-                onClick={sendOtp}
-                disabled={isLoading}
-                className="btn-primary w-full flex items-center justify-center"
+              <button 
+                onClick={sendOtp} 
+                disabled={isLoading} 
+                className="w-full px-8 py-4 rounded-xl bg-primary text-primary-foreground border border-primary/20 shadow-lg hover:bg-primary/90 transition-all font-medium disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
               >
                 {isLoading ? (
                   <>
@@ -115,43 +187,39 @@ const Login = () => {
                     </svg>
                     Sending OTP...
                   </>
-                ) : (
-                  "Send Verification Code"
-                )}
+                ) : "Send OTP"}
               </button>
             </div>
           ) : (
-            <div className="space-y-6">
+            <div className="space-y-4">
               <div>
-                <label htmlFor="otp" className="block text-sm font-medium text-gray-700 mb-2">
-                  Verification Code
-                </label>
+                <label className="block text-sm text-white mb-2 text-center">Enter OTP Code</label>
                 <input
-                  id="otp"
                   type="text"
-                  placeholder="Enter 6-digit code"
+                  className="w-full px-4 py-4 bg-card/50 border border-border rounded-xl text-foreground text-center text-2xl tracking-[0.5em] placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent backdrop-blur-sm font-mono"
                   value={otp}
                   onChange={(e) => setOtp(e.target.value)}
-                  className="input-field text-center text-2xl tracking-widest"
-                  maxLength="6"
+                  placeholder="000000"
+                  maxLength={6}
                   onKeyPress={(e) => e.key === 'Enter' && verifyOtp()}
+                  required
                 />
-                <p className="text-sm text-gray-500 mt-2">
-                  Code sent to: <span className="font-medium">{email}</span>
+                <p className="text-xs text-muted-foreground mt-2 text-center">
+                  Code sent to <span className="text-primary">{email}</span>
                 </p>
               </div>
-              
-              <div className="flex space-x-3">
-                <button
-                  onClick={goBack}
-                  className="btn-secondary flex-1"
+              <div className="flex gap-3">
+                <button 
+                  className="flex-1 px-6 py-3 rounded-xl bg-card/50 text-foreground border border-border backdrop-blur-sm hover:bg-card transition-all font-medium flex items-center justify-center gap-2" 
+                  onClick={() => setStep("enterEmail")}
                 >
+                  <ArrowLeft className="w-4 h-4" />
                   Back
                 </button>
-                <button
-                  onClick={verifyOtp}
-                  disabled={isLoading}
-                  className="btn-primary flex-1 flex items-center justify-center"
+                <button 
+                  onClick={verifyOtp} 
+                  disabled={isLoading} 
+                  className="flex-1 px-6 py-3 rounded-xl bg-primary text-primary-foreground border border-primary/20 shadow-lg hover:bg-primary/90 transition-all font-medium disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
                 >
                   {isLoading ? (
                     <>
@@ -161,57 +229,46 @@ const Login = () => {
                       </svg>
                       Verifying...
                     </>
-                  ) : (
-                    "Verify & Login"
-                  )}
+                  ) : "Verify & Login"}
                 </button>
               </div>
             </div>
           )}
 
-          {/* Message Display */}
           {message && (
-            <div className={`mt-4 p-4 rounded-lg ${
-              message.includes("✅") || message.includes("sent") 
-                ? "bg-green-50 text-green-700 border border-green-200" 
-                : "bg-red-50 text-red-700 border border-red-200"
+            <div className={`mt-4 p-4 rounded-xl backdrop-blur-sm ${
+              message.includes("sent") || message.includes("✅")
+                ? "bg-primary/20 text-foreground border border-primary/30"
+                : "bg-destructive/20 text-foreground border border-destructive/30"
             }`}>
               <div className="flex items-center">
-                {message.includes("✅") ? (
-                  <svg className="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
-                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-                  </svg>
-                ) : message.includes("sent") ? (
-                  <svg className="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
-                    <path d="M2.003 5.884L10 9.882l7.997-3.998A2 2 0 0016 4H4a2 2 0 00-1.997 1.884z" />
-                    <path d="M18 8.118l-8 4-8-4V14a2 2 0 002 2h12a2 2 0 002-2V8.118z" />
-                  </svg>
+                {message.includes("sent") || message.includes("✅") ? (
+                  <CheckCircle className="w-5 h-5 mr-2" />
                 ) : (
-                  <svg className="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
-                    <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
-                  </svg>
+                  <AlertCircle className="w-5 h-5 mr-2" />
                 )}
                 <span className="text-sm font-medium">{message}</span>
               </div>
             </div>
           )}
-        </div>
+            </div>
+          </div>
 
-        {/* Footer Links */}
-        <div className="text-center">
-          <p className="text-gray-600">
-            Don't have an account?{" "}
-            <Link to="/register" className="text-primary-600 hover:text-primary-700 font-medium">
-              Sign up here
+          {/* Footer Links */}
+          <div className="text-center space-y-4">
+            <p className="text-muted-foreground">
+              Don't have an account?{" "}
+              <Link to="/signup" className="text-primary hover:text-primary/80 font-medium transition-colors">
+                Sign up here
+              </Link>
+            </p>
+            <Link to="/" className="text-muted-foreground hover:text-foreground text-sm flex items-center justify-center gap-2 transition-colors">
+              <ArrowLeft className="w-4 h-4" />
+              Back to home
             </Link>
-          </p>
-          <Link to="/" className="text-gray-500 hover:text-gray-700 text-sm mt-4 block">
-            ← Back to home
-          </Link>
+          </div>
         </div>
       </div>
     </div>
   );
-};
-
-export default Login;
+}

@@ -1,11 +1,10 @@
 const jwt = require('jsonwebtoken');
-const Pool = require('../config/database');
+const pool = require('../config/database');
 
 const authenticateToken = async (req, res, next) => {
   try {
     const authHeader = req.headers['authorization'];
     const token = authHeader && authHeader.split(' ')[1]; // Bearer TOKEN
-
     if (!token) {
       return res.status(401).json({
         success: false,
@@ -17,7 +16,7 @@ const authenticateToken = async (req, res, next) => {
     
     // Verify user still exists
     const userQuery = 'SELECT id, email, campus_verified FROM users WHERE id = $1';
-    const userResult = await Pool.query(userQuery, [decoded.userId]);
+    const userResult = await pool.query(userQuery, [decoded.userId]);
     
     if (userResult.rows.length === 0) {
       return res.status(401).json({
